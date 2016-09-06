@@ -36,6 +36,12 @@ void free(void *ptr);
 local lib = ffi_load "passwdqc"
 local pct = ffi_typeof "passwdqc_params_t"
 
+local function init()
+    local pt = ffi_new(pct)
+    lib.passwdqc_params_reset(pt)
+    return pt
+end
+
 local function random(context)
     local pw = ffi_gc(lib.passwdqc_random(context.qc), C.free)
     local ps = ffi_str(pw)
@@ -64,21 +70,15 @@ end
 local passwdqc = {}
 
 function passwdqc.new()
-    local pt = ffi_new(pct)
-    lib.passwdqc_params_reset(pt)
-    return setmetatable({ context = pt }, mt)
+    return setmetatable({ context = init() }, mt)
 end
 
 function passwdqc.random()
-    local pt = ffi_new(pct)
-    lib.passwdqc_params_reset(pt)
-    return random(pt)
+    return random(init())
 end
 
 function passwdqc.check(newpass, oldpass)
-    local pt = ffi_new(pct)
-    lib.passwdqc_params_reset(pt)
-    return check(pt, newpass, oldpass)
+    return check(init(), newpass, oldpass)
 end
 
 return passwdqc
