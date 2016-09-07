@@ -6,6 +6,7 @@ local ffi_new = ffi.new
 local ffi_str = ffi.string
 local ffi_gc = ffi.gc
 local C = ffi.C
+local type = type
 local setmetatable = setmetatable
 
 ffi_cdef[[
@@ -77,6 +78,9 @@ local function parse(context, opts)
 end
 
 local function random(context, opts)
+    if type(opts) == "number" then
+        opts = { random = opts }
+    end
     local ok, err = parse(context, opts)
     if not ok then
         return nil, err
