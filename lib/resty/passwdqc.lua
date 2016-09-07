@@ -11,19 +11,19 @@ local setmetatable = setmetatable
 
 ffi_cdef[[
 typedef struct {
-	int min[5], max;
-	int passphrase_words;
-	int match_length;
-	int similar_deny;
-	int random_bits;
+    int min[5], max;
+    int passphrase_words;
+    int match_length;
+    int similar_deny;
+    int random_bits;
 } passwdqc_params_qc_t;
 typedef struct {
-	int flags;
-	int retry;
+    int flags;
+    int retry;
 } passwdqc_params_pam_t;
 typedef struct {
-	passwdqc_params_qc_t qc;
-	passwdqc_params_pam_t pam;
+    passwdqc_params_qc_t qc;
+    passwdqc_params_pam_t pam;
 } passwdqc_params_t;
 const char *passwdqc_check(const passwdqc_params_qc_t *params, const char *newpass, const char *oldpass, const struct passwd *pw);
 char *passwdqc_random(const passwdqc_params_qc_t *params);
