@@ -35,6 +35,17 @@ void free(void *ptr);
 
 local lib = ffi_load "passwdqc"
 local pct = ffi_typeof "passwdqc_params_t"
+local cct = ffi_typeof "const char*[?]"
+local rpt = ffi_typeof "char *[?]"
+
+local defaults = {
+    min = "disabled,24,11,8,7",
+    max = 40,
+    passphrase = 3,
+    match = 4,
+    similar = "deny",
+    random = 47,
+}
 
 local function init()
     local pt = ffi_new(pct)
@@ -42,14 +53,33 @@ local function init()
     return pt
 end
 
-local function random(context)
+local function parse(context, opts)
+    if opts then
+        local argv = {
+            "min="        .. (opts.min        or defaults.min),
+            "max="        .. (opts.max        or defaults.max),
+            "passphrase=" .. (opts.passphrase or defaults.passphrase),
+            "match="      .. (opts.match      or defaults.match),
+            "similar="    .. (opts.similar    or defaults.similar),
+            "random="     .. (opts.random     or defaults.random)
+        }
+        local argv = ffi_new(cct, 6, argv)
+        local rson = ffi_new(rpt, 100)
+        lib.passwdqc_params_parse(context, rson, 6, argv)
+    end
+    return context
+end
+
+local function random(context, opts)
+    parse(context, opts)
     local pw = ffi_gc(lib.passwdqc_random(context.qc), C.free)
     local ps = ffi_str(pw)
     lib._passwdqc_memzero(pw, #ps)
     return ps
 end
 
-local function check(context, newpass, oldpass)
+local function check(context, newpass, oldpass, opts)
+    parse(context, opts)
     local rs = lib.passwdqc_check(context.qc, newpass, oldpass, nil)
     if rs == nil then
         return true
@@ -59,26 +89,26 @@ end
 
 local mt = {}
 
-function mt:random()
-    return random(self.context)
+function mt:random(opts)
+    return random(self.context, opts)
 end
 
-function mt:check(newpass, oldpass)
-    return check(self.context, newpass, oldpass)
+function mt:check(newpass, oldpass, opts)
+    return check(self.context, newpass, oldpass, opts)
 end
 
 local passwdqc = {}
 
-function passwdqc.new()
-    return setmetatable({ context = init() }, mt)
+function passwdqc.new(opts)
+    return setmetatable({ context = parse(init(), opts) }, mt)
 end
 
-function passwdqc.random()
-    return random(init())
+function passwdqc.random(opts)
+    return random(init(), opts)
 end
 
-function passwdqc.check(newpass, oldpass)
-    return check(init(), newpass, oldpass)
+function passwdqc.check(newpass, oldpass, opts)
+    return check(init(), newpass, oldpass, opts)
 end
 
 return passwdqc
