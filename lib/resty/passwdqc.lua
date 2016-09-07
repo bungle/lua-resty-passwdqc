@@ -36,7 +36,7 @@ void free(void *ptr);
 local lib = ffi_load "passwdqc"
 local pct = ffi_typeof "passwdqc_params_t"
 local cct = ffi_typeof "const char*[?]"
-local rpt = ffi_typeof "char *[?]"
+local rpt = ffi_typeof "char *[1]"
 
 local defaults = {
     min = "disabled,24,11,8,7",
@@ -64,14 +64,23 @@ local function parse(context, opts)
             "random="     .. (opts.random     or defaults.random)
         }
         local argv = ffi_new(cct, 6, argv)
-        local rson = ffi_new(rpt, 100)
-        lib.passwdqc_params_parse(context, rson, 6, argv)
+        local rson = ffi_new(rpt)
+        if lib.passwdqc_params_parse(context, rson, 6, argv) == -1 then
+            if rson[0] ~= nil then
+                return nil, ffi_str(rson[0])
+            else
+                return nil, "Unknown error occurred on parse"
+            end
+        end
     end
     return context
 end
 
 local function random(context, opts)
-    parse(context, opts)
+    local ok, err = parse(context, opts)
+    if not ok then
+        return nil, err
+    end
     local pw = ffi_gc(lib.passwdqc_random(context.qc), C.free)
     local ps = ffi_str(pw)
     lib._passwdqc_memzero(pw, #ps)
@@ -79,7 +88,10 @@ local function random(context, opts)
 end
 
 local function check(context, newpass, oldpass, opts)
-    parse(context, opts)
+    local ok, err = parse(context, opts)
+    if not ok then
+        return nil, err
+    end
     local rs = lib.passwdqc_check(context.qc, newpass, oldpass, nil)
     if rs == nil then
         return true
@@ -100,7 +112,12 @@ end
 local passwdqc = {}
 
 function passwdqc.new(opts)
-    return setmetatable({ context = parse(init(), opts) }, mt)
+    local context = init()
+    local ok, err = parse(context, opts)
+    if not ok then
+        return nil, err
+    end
+    return setmetatable({ context = context }, mt)
 end
 
 function passwdqc.random(opts)
