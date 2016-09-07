@@ -45,7 +45,7 @@ local defaults = {
     passphrase = 3,
     match = 4,
     similar = "deny",
-    random = 47,
+    random = 47
 }
 
 local function init()
