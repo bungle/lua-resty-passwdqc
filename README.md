@@ -44,7 +44,6 @@ else
     print("error", err)
 end
 
-
 -- Check if password strength is enough using default settings
 local ok, err = password.check('newpassword', 'oldpassword')
 
@@ -53,7 +52,6 @@ if ok then
 else
     print("error", err)
 end
-
 
 -- Check if password strength is enough using default settings
 local ok, err = password.check('new2!password', 'oldpassword')
