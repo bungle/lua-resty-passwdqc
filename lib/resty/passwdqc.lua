@@ -92,6 +92,10 @@ local function random(context, opts)
 end
 
 local function check(context, newpass, oldpass, opts)
+    if type(oldpass) == "table" and opts == nil then
+        opts = oldpass
+        oldpass = nil
+    end
     local ok, err = parse(context, opts)
     if not ok then
         return nil, err
