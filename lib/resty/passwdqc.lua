@@ -108,6 +108,7 @@ local function check(context, newpass, oldpass, opts)
 end
 
 local mt = {}
+mt.__index = mt
 
 function mt:random(opts)
     return random(self.context, opts)

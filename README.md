@@ -5,7 +5,7 @@ LuaJIT FFI bindings to [libpasswdqc](http://www.openwall.com/passwdqc/) — a pa
 ## Synopsis
 
 ```lua
-locl password = require "resty.passwdqc"
+local password = require "resty.passwdqc"
 
 -- Generate a random password with default settings
 local pw, err = password.random()
@@ -27,6 +27,15 @@ end
 
 -- Generate a random password with random=85
 local pw, err = password.random(85)
+
+if pw then
+    print("success", pw)
+else
+    print("error", err)
+end
+
+-- Generate a random password with random=85
+local pw, err = password.random(10)
 
 if pw then
     print("success", pw)
@@ -101,20 +110,33 @@ if ok then
 else
     print("error", err)
 end
+
+-- If you need to run more tests with same settings, you can use:
+
+local quality = password.new{ min = "disabled,24,11,9,8", match = 3 }
+local ok, err = quality:check("This!Is2Awesom3!", "IUsedToUse7his")
+
+if ok then
+    print("success", "new password is fine")
+else
+    print("error", err)
+end
 ```
 
 The above would output something similar to this:
 
 ```
-success	Glance4Aghast4olive
-success	longer-Alice
-success	god6plunge-player!lewis-Widely6
-success	Ascent$marsh_Hey+Heroic
+success	grace-Mutter=upon
+success	vague-Libya
+success	Animal!Couple9scum2Track9Mark3
+error	Error parsing parameter "random=10": Invalid parameter value
+success	pursue_buggy2baby!Loop
 error	not enough different characters or classes for this length
 error	is based on the old one
 success	new password is fine
 error	too short
 error	too short
+success	new password is fine
 ```
 
 ## License
