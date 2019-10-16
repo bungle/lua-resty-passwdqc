@@ -9,7 +9,7 @@ local C = ffi.C
 local type = type
 local setmetatable = setmetatable
 
-ffi_cdef[[
+ffi_cdef [[
 typedef struct {
     int min[5], max;
     int passphrase_words;
@@ -30,9 +30,19 @@ char *passwdqc_random(const passwdqc_params_qc_t *params);
 int passwdqc_params_parse(passwdqc_params_t *params, char **reason, int argc, const char *const *argv);
 int passwdqc_params_load(passwdqc_params_t *params, char **reason, const char *pathname);
 void passwdqc_params_reset(passwdqc_params_t *params);
-void (*_passwdqc_memzero)(void *, size_t);
+]]
+
+if not pcall(function() return C["free"] end) then
+    ffi_cdef [[
 void free(void *ptr);
 ]]
+end
+
+if not pcall(function() return C["memset"] end) then
+    ffi_cdef [[
+void *memset(void *ptr, int x, size_t n);
+]]
+end
 
 local lib = ffi_load "passwdqc"
 local pct = ffi_typeof "passwdqc_params_t"
@@ -87,7 +97,7 @@ local function random(context, opts)
     end
     local pw = ffi_gc(lib.passwdqc_random(context.qc), C.free)
     local ps = ffi_str(pw)
-    lib._passwdqc_memzero(pw, #ps)
+    C.memset(pw, 0, #ps)
     return ps
 end
 
