@@ -128,7 +128,9 @@ function mt:check(newpass, oldpass, opts)
     return check(self.context, newpass, oldpass, opts)
 end
 
-local passwdqc = {}
+local passwdqc = {
+    _VERSION = "1.1"
+}
 
 function passwdqc.new(opts)
     local context = init()
